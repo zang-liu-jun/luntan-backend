@@ -7,31 +7,25 @@ const redisClient=require('../redis/index.js')
 
 // 添加文章
 exports.addArticle = (req, res) => {
-  /* if (!req.session.user || req.session.user.username !== req.user.username) {
-    return res.send({ status: 1, message: "发帖失败，请重新登录" });
-  } */
-
   if(!req.user.username){
     return res.send({status:1,message:'未登录，请先登录'})
   }
+  const u_aid=uuidv4()  //文章id
 
   redisClient.get(req.user.username,(err,result)=>{
     if(err)return res.send({status:1,message:err})
     const articleInfo = req.body;
-    let pic=null
+    let picName=null
     if(req.file){
       var fileName = req.file.originalname.lastIndexOf(".");//取到文件名开始到最后一个点的长度
-  
       var fileNameLength = req.file.originalname.length;//取到文件名长度
-  
       var fileFormat = req.file.originalname.substring(fileName + 1, fileNameLength);//截
       picName=req.file.filename+'.'+fileFormat; // 图片完整名字
       fs.rename('./'+req.file.path,'./'+req.file.destination +'/'+ picName,(err)=>{
         if(err) return res.send({status:1,message:err})
       })
     }
-    const u_aid=uuidv4()  //文章id
-
+    
     db.query(
       "insert into article set ?",
       {
